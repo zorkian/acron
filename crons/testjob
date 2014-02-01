@@ -1,0 +1,54 @@
+#
+# Test cron job. Hashed lines are comments.
+#
+# This is an easy to use DSL that is designed to be succinct like a regular cron file.
+#
+
+# The time signature is designed for the most common use case: which is to run something every
+# N minutes or hours or similar. You can use the standard suffixes: s, m, h, d.
+every 5s
+
+# Specify this to run some command and, if the command returns true, then this cron is active
+# and run on the given machine.
+# if /Users/zorkian/test.py somearg someotherarg
+
+# Alternately, you could do something like:
+# every hour
+# every minute
+# every day
+
+# You can turn splay on or off. While it's on, we will run your job with some random offset
+# into its period. I.e., a job that runs every minute will run every 60s but it won't
+# run on the :00 boundary with splay on. We hash the hostname and consistently splay across
+# the time period given.
+splay off
+
+# You can set a timeout: if a job runs for longer than this, then we will send it SIGTERM.
+# If it's still running later, we'll send it SIGKILL.
+timeout 1m
+
+# Logging information, in case you want to send things to somewhere other than the default
+# destination for cron output (which is root@localhost, or specified on the command line).
+stdout /var/log/acron/myjob.log
+
+# You can also send stderr somewhere (to either stdout, or to a file like /dev/null).
+stderr stdout
+
+# Similarly, you can specify an email address and we'll connect to a local mailserver and
+# try to send the output to this person.
+# stderr user@example.com
+
+# Another trick is to suppress stdout *unless* there's an error, in which case to send both
+# to the user. This lets you get output only if there's an error case, but still have your
+# scripts write to stdout.
+send-stdout if-stderr
+# send-stdout always
+# send-stdout never
+
+# Now specify the command to be run, and you can use multiple lines. It's assumed that your
+# command continues on the next lines if it's indented. This command is passed to bash, so you
+# can do output redirection if you need to.
+run
+    /usr/local/bin/python /path/to/some/script.py
+        --arguments=50
+        --moreargs=60
